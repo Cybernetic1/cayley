@@ -1,0 +1,196 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html>
+<head>
+<title>Cayley diagrams of free monoids</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<link type="text/css" rel="StyleSheet" href="css/winclassic.css" />
+</head>
+
+<body onLoad="drawSomething();">
+
+<div id="middle">
+
+<table>
+	<tr>
+		<td><canvas id="canvas" width="1050" height="1420"
+		onmousemove="getPos(event)" onmouseout="stopTracking()"></canvas></td>
+	</tr>
+</table>
+
+<form id="cursorArea" align="center">
+<textarea rows="1" cols="100"></textarea>
+</form>
+
+</div>
+
+<script type="text/javascript">
+
+var ctx;
+var width = 1050;
+var height = 1420;
+
+// range variables
+var ranA_default = -2;
+var ranA = ranA_default;
+var ranA_min = -10;
+var ranA_max = 0;
+
+var ranB_default = 2;
+var ranB = ranB_default;
+var ranB_min = 0;
+var ranB_max = 10;
+
+var ranC_default = -2;
+var ranC = ranC_default;
+var ranC_min = -10;
+var ranC_max = 0;
+
+var ranD_default = 2;
+var ranD = ranD_default;
+var ranD_min = 0;
+var ranD_max = 10;
+
+function drawSomething() {
+	// get the canvas element using the DOM
+	var canvas = document.getElementById("canvas");
+
+	// Make sure we don't execute when canvas isn't supported
+	if (canvas.getContext){
+
+		// use getContext to use the canvas for drawing
+		ctx = canvas.getContext('2d');
+		//sep = document.getElementById("spacing").value;
+
+		//width = window.outerWidth - 50;
+		//height = window.outerHeight - 250;
+
+		//canvas.width = width;
+		//canvas.height = height;
+
+		// fill background
+		ctx.fillStyle = 'rgb(0, 0, 0)';
+		ctx.fillRect(0,0,width,height);
+
+		// origin (x,y) and "width"
+		drawCayley(400, 550, 300);
+	}
+}
+
+function drawCayley(x0, y0, delta) {
+
+	var color1 = 'rgb(100,0,0)';
+	var color2 = 'rgb(100,100,255)';
+
+	// n = number of divisions of circle, eg 4 = standard Cayley graph
+	var n = 5, i = 0;
+	var d_theta = Math.PI * 2 / n, theta = 0;
+
+	while (i < n) {
+		var x1 = x0 + delta * Math.cos(theta), y1 = y0 + delta * Math.sin(theta);
+
+		drawLine(x0, y0, x1, y1, color1);
+		//drawNode(x1, y1, 4, color2);
+
+		theta += d_theta;
+		i += 1;
+	}
+
+	// Draw a circle showing the "span" of each node:
+	//circle(x0, y0, delta, 'rgb(100,100,100)');
+
+	// edge length is halved
+	var delta2 = delta / 3;
+	if (delta2 <= 3)		// change this number (power of 2) to get a
+		return;				// dense or sparse plot
+
+	setTimeout(function() {
+
+		// recurse on children nodes
+		i = 0;
+		while (i < n) {
+			var x1 = x0 + delta * Math.cos(theta), y1 = y0 + delta * Math.sin(theta);
+
+			drawCayley(x1, y1, delta2);
+
+			theta += d_theta;
+			i += 1;
+		}
+
+	}, 1400);
+}
+
+function drawLine(x0,y0,x1,y1,c) {
+	ctx.beginPath();
+	ctx.strokeStyle = c;
+	ctx.moveTo(x0,y0);
+	ctx.lineTo(x1,y1);
+	ctx.closePath();
+	ctx.stroke();
+}
+
+function drawNode(x,y,r,c) {
+	ctx.fillStyle = c;
+	ctx.beginPath();
+	ctx.arc(x, y, r, 0, Math.PI*2, true);
+	ctx.closePath();
+	ctx.fill();
+}
+
+function circle(x,y,r,c) {
+	ctx.strokeStyle = c;
+	ctx.beginPath();
+	ctx.arc(x, y, r, 0, Math.PI*2, true);
+	ctx.closePath();
+	ctx.stroke();
+}
+
+//function drawPoint(x,y,c) {
+//	ctx.fillStyle = c;
+//	ctx.fillRect(x,y,1,1);
+//}
+
+// converts space coordinates to window coordinates, for the x coordinate
+function spaceToScreenX(x) {
+	return width*(x - ranA)/(ranB - ranA);
+}
+
+// converts space coordinates to window coordinates, for the y coordinate
+function spaceToScreenY(y) {
+	return height*(ranD - y)/(ranD - ranC);
+}
+
+// Inverse functions of the above
+function screenToSpaceX(x) {
+	return (ranB - ranA)*x / width + ranA;
+}
+
+function screenToSpaceY(y) {
+	return ranD - (ranD - ranC)*y / height;
+}
+
+// Display mouse pointer position
+function getPos(e){
+		var canvas = document.getElementById("canvas");
+        var x=e.clientX - canvas.getBoundingClientRect().left;
+        var y=e.clientY - canvas.getBoundingClientRect().top;
+        var x_ = screenToSpaceX(x).toFixed(3);
+        var y_ = screenToSpaceY(y).toFixed(3);
+        var cursor="mouse: (" + x + ", " + y + ")";
+        cursor += "<br>relative: (" + x_ + ", " + y_ + ")";
+
+		// cursor += "<br>f(z) = (" + fx.toFixed(3) + ", " + fy.toFixed(3) + ")";
+
+        document.getElementById("cursorArea").innerHTML=cursor;
+    }
+
+function stopTracking(){
+        document.getElementById("cursorArea").innerHTML="position: (_,_)";
+    }
+
+</script>
+</div>
+
+</body>
+</html>
